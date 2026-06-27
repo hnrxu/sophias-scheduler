@@ -40,7 +40,7 @@ export default defineManifest({
       matches: ['https://wd10.myworkday.com/*']
     },
   ],
-  host_permissions: ['https://wd10.myworkday.com/*'],
+  host_permissions: ['https://wd10.myworkday.com/*',  "https://vancouver.calendar.ubc.ca/*"],
   permissions: ['sidePanel', 'storage'],
   chrome_url_overrides: {
     newtab: 'newtab.html',

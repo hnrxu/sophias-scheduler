@@ -71,18 +71,22 @@ export const parseSection = (item) => {
     const meetingInstances = detailMap['Section Details']?.instances ?? []
     const meetings = meetingInstances.map(inst => {
         const parts = inst.text.split(' | ')
-        const [startTime, endTime] = parts[5].split(' - ')
-        const [startDate, endDate] = parts[6].split(' - ')
+        const dateRange = parts.find(p => /\d{4}-\d{2}-\d{2}.*-.*\d{4}-\d{2}-\d{2}/.test(p))
+        const timeRange = parts.find(p => /\d+:\d+.*-.*\d+:\d+/.test(p))
+        const days = parts.find(p => /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/.test(p))
+        const floor = parts.find(p => p.startsWith('Floor:'))
+        const room = parts.find(p => p.startsWith('Room:'))
+        const campus = parts.find(p => p.startsWith('UBC'))
+        const building = parts.find(p => /\(([A-Z]+)\)$/.test(p))
+        const [startTime, endTime] = timeRange.split(' - ')
+        const [startDate, endDate] = dateRange.split(' - ')
         return {
-        campus: parts[0],
-        building: parts[1],
-        floor: parts[2].replace('Floor: ', ''),
-        room: parts[3].replace('Room: ', ''),
-        days: parts[4],
-        startTime,
-        endTime,
-        startDate,
-        endDate
+            campus: campus ?? null,
+            building: building ?? null,
+            floor: floor?.replace('Floor: ', '') ?? null,
+            room: room?.replace('Room: ', '') ?? null,
+            days: days ?? null,
+            startTime, endTime, startDate, endDate
         }
     })
 

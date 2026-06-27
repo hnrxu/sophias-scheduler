@@ -1,6 +1,6 @@
 console.log('pageContext running')
 
-function waitForToken() {
+const waitForToken = () => {
   const sessionToken = window.workday?.session?.sessionSecureToken
 
   console.log('checking token in pageContext:', sessionToken)
