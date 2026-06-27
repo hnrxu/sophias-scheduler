@@ -16,5 +16,5 @@ window.addEventListener('__schedulerReady', (event) => {
 
 const script = document.createElement('script')
 script.src = chrome.runtime.getURL('src/contentScript/pageContext.js')
-script.onload = () => script.remove() // attach func to run only after this script is done
+script.onload = () => script.remove() // attach remove to run only after this script is done
 document.documentElement.appendChild(script)

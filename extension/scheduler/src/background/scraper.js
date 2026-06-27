@@ -1,3 +1,5 @@
+import { parseSection } from "./parser"
+
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms))
 
 const fetchWithRetry = async (url, options, retries = 3) => {
@@ -124,13 +126,10 @@ const paginateSubject = async (sessionToken, paginationUrl, subjectTotal) => {
 
 
 
-
-/// TODO: MAKE INTO MAP INSTEAD OF ARRAY TO AVOID DUPLICATES
-
 export const scrape = async (sessionToken, reloadToken) => {
 
     const subjectCodes = await fetchSubjectCodes()
-    const allSections = new Map()
+    const allSections = new Map() /// map used to avoid dupes
 
     const { searchUrl, total} = await fetchInitial(sessionToken, reloadToken)
 
@@ -143,7 +142,7 @@ export const scrape = async (sessionToken, reloadToken) => {
         for (const section of subjectSections) {
             const id = section.title.instances[0].instanceId
             if (!allSections.has(id)) {
-                allSections.set(id, section)
+                allSections.set(id, parseSection(section))
             }
         }
         
@@ -152,7 +151,7 @@ export const scrape = async (sessionToken, reloadToken) => {
 
     console.log(`Scrape complete. scraped ${allSections.size}/${total}`)
     
-    return allSections
+    return [...allSections.values()] //back to array to iterate upon insertion
 }
 
 

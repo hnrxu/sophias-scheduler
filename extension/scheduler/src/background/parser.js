@@ -1,4 +1,7 @@
 export const parseSection = (item) => {
+    // id
+    const instanceId = item.title.instances[0].instanceId
+
     // title
     const fullText = item.title.instances[0].text
     const dashIdx = fullText.indexOf(' - ')
@@ -91,6 +94,7 @@ export const parseSection = (item) => {
     })
 
     return {
+        instanceId,
         courseCode,
         subject,
         courseNumber,
