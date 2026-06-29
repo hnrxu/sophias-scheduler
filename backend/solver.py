@@ -53,6 +53,7 @@ def filter_open(sections):
     for section in sections:
         if section['status'] == 'Open':
             filtered_sections.append(section)
+    return filtered_sections
 
 
 def solve(sections, course_list):
