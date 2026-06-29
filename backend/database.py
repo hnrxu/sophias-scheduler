@@ -29,7 +29,7 @@ def get_queried_courses(q):
         
     response = supabase.table('sections') \
                     .select('subject, course_number, title') \
-                    .ilike('subject', f'{q}%') \
+                    .or_(f'subject.ilike.{q}%,course_number.ilike.{q}%') \
                     .execute()
     
     for row in response.data:
