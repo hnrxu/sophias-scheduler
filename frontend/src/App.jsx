@@ -4,9 +4,9 @@ import './App.css'
 function App() {
     const [courses, setCourses] = useState([])
     const [selectedCourses, setSelectedCourses] = useState([])
-    const [preferences, setPreferences] = useState([])
+    const [preferences, setPreferences] = useState('')
     const [schedule, setSchedule] = useState([])
-    const [query, setQuery] = useState("")
+    const [query, setQuery] = useState('')
 
     const generateSchedule = async () => {
 
@@ -21,13 +21,14 @@ function App() {
         )
 
         const data = await response.json()
+        console.log(data)
         setSchedule(data)
 
 
     }
 
     const handleSelect = (course) => {
-        setSelectedCourses([...selectedCourses, course])
+        setSelectedCourses([...selectedCourses, { ...course, term: 'either' }])
         setQuery('')
     }
 
@@ -86,8 +87,21 @@ function App() {
                     </div>
     
             )}
-
-            {schedule}
+            <button onClick={generateSchedule}>generate schedule</button>
+            {schedule && !schedule.error && (
+                <div>
+                    {Object.entries(schedule).map(([key, section]) => (
+                        <div key={key}>
+                            <strong>{section.subject} {section.course_number} - {section.format}</strong>
+                            <p>{section.section} | {section.status}</p>
+                            {section.meetings?.map((m, i) => (
+                                <p key={i}>{m.days} {m.startTime} - {m.endTime}</p>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            )}
+            {schedule?.error && <p>{schedule.error}</p>}
         </div>
 
     )

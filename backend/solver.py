@@ -30,7 +30,7 @@ def filter_by_term(sections, course_list):
 
     filtered_sections = []
     for section in sections:
-        term = term_map[(section['subject'], section['course_number'])]
+        term = term_map.get((section['subject'].replace('_V', ''), section['course_number']))
         if term == 'either':
             filtered_sections.append(section)
         elif term == '1':
