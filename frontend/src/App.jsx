@@ -95,7 +95,7 @@ function App() {
                             <strong>{section.subject} {section.course_number} - {section.format}</strong>
                             <p>{section.section} | {section.status}</p>
                             {section.meetings?.map((m, i) => (
-                                <p key={i}>{m.days} {m.startTime} - {m.endTime}</p>
+                                <p key={i}>{m.days} {m.startTime} - {m.endTime} {m.startDate} </p>
                             ))}
                         </div>
                     ))}

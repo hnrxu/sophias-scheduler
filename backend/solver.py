@@ -48,20 +48,29 @@ def filter_by_term(sections, course_list):
     return filtered_sections
 
 
+def filter_open(sections):
+    filtered_sections = []
+    for section in sections:
+        if section['status'] == 'Open':
+            filtered_sections.append(section)
+
 
 def solve(sections, course_list):
     sections = filter_by_term(sections, course_list)
+    sections = filter_open(sections)
     section_options = group_sections(sections)
     model = cp_model.CpModel()
 
     # creats one variable per grp of options
     variables = {}
     for key, options in section_options.items():
+        if not options:
+            return None # return impossible schedule if no sections in a grp
         # creates a 'decision variable' ex variables[cpsc 110 lecture] = some value from 0-optionssize
         variables[key] = model.new_int_var(0, len(options) - 1, key)
     
 
-    # add forbidden combinations
+    # add forbidden combinations for conflicting times
     keys = list(section_options.keys())
     for i in range(len(keys)):
         for j in range(i+1, len(keys)):
@@ -80,6 +89,7 @@ def solve(sections, course_list):
             
             if forbidden:
                 model.add_forbidden_assignments([variables[key1], variables[key2]], forbidden)
+
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
