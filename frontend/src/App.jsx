@@ -2,11 +2,14 @@ import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
 function App() {
+    // courses displayed/responding to user query
     const [courses, setCourses] = useState([])
+    // actual chosen courses out of the responding to query
     const [selectedCourses, setSelectedCourses] = useState([])
     const [preferences, setPreferences] = useState('')
     const [schedule, setSchedule] = useState([])
-    const [query, setQuery] = useState('')
+    // user typed course 
+    const [courseQuery, setCourseQuery] = useState('')
 
     const generateSchedule = async () => {
 
@@ -30,17 +33,17 @@ function App() {
 
     const handleSelect = (course) => {
         setSelectedCourses([...selectedCourses, { ...course, term: 'either' }])
-        setQuery('')
+        setCourseQuery('')
     }
 
     useEffect(() => {
-        if (!query) {
+        if (!courseQuery) {
             setCourses([])
             return
         }
         const fetchCourses = async () => {
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/courses/search?q=${query}`, 
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/courses/search?q=${courseQuery}`, 
                 {
                     method: 'GET',
                     headers: { 
@@ -57,7 +60,7 @@ function App() {
         }
         fetchCourses()
 
-    }, [query])
+    }, [courseQuery])
 
     const inputRef = useRef(null)
 
@@ -73,21 +76,29 @@ function App() {
                 ))}
                 <input
                     ref={inputRef}
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    value={courseQuery}
+                    onChange={(e) => setCourseQuery(e.target.value)}
                     onBlur={() => setTimeout(() => setCourses([]), 150)}
                 />
             </div>
             {courses.length > 0 && (
                     <div>
                     {courses.map(course => (
-                        <div key={`${course.subject}-${course.course_number}`} onClick={() => handleSelect(course)}>
+                        <div key={`${course.subject}-${course.course_number}`} onMouseDown={() => handleSelect(course)}>
                             {course.subject} {course.course_number}
                         </div>
                     ))}
                     </div>
     
             )}
+
+            <input 
+                type="text" 
+                placeholder="schedule preferences (ex. no classes thursday, minimize gaps between classes, mostly morning classes)"
+                value={preferences}
+                onChange={(e)=>setPreferences(e.target.value)}
+            />
+
             <button onClick={generateSchedule}>generate schedule</button>
             {schedule && !schedule.error && (
                 <div>

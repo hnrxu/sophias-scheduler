@@ -1,5 +1,6 @@
 from openai import OpenAI
 from dotenv import load_dotenv
+import json
 
 load_dotenv()
 client = OpenAI()
@@ -35,4 +36,4 @@ def classify_preferences(preference_str):
         input=preference_str
     )
 
-    return response.output_text
+    return json.loads(response.output_text)
