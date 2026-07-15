@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from database import get_queried_courses, get_sections_for_courses
 from solver import solve
-from backend.prefparser import classify_preferences
+from prefparser import classify_preferences
 
 
 app = FastAPI()
