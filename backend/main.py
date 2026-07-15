@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from database import get_queried_courses, get_sections_for_courses
 from solver import solve
+from backend.prefparser import classify_preferences
 
 
 app = FastAPI()
@@ -33,11 +34,19 @@ def health():
 def generate_schedule(request: ScheduleRequest):
     course_list = [c.model_dump() for c in request.course_list]
     sections = get_sections_for_courses(course_list) # converts from basemodel to python dict structure
-    schedule = solve(sections, course_list)
+
+    unsupported_preferences = []
+    preferences = []
+    if request.preferences:
+        all_preferences = classify_preferences(request.preferences)
+        unsupported_preferences = [p for p in all_preferences if p['type'] == 'unsupported']
+        preferences = [p for p in all_preferences if p['type'] != 'unsupported']
+
+    schedule = solve(sections, course_list, preferences)
 
     if schedule is None:
         return {"error": "No valid schedule found"}
-    return schedule
+    return { 'schedule': schedule, 'unsupported': unsupported_preferences }
 
 @app.get('/courses/search')
 def get_courses(q: str = ''):

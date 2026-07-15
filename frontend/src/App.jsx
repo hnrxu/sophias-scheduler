@@ -21,8 +21,9 @@ function App() {
         )
 
         const data = await response.json()
-        console.log(data)
-        setSchedule(data)
+        console.log(data.schedule)
+        setSchedule(data.schedule)
+        // TODO: manage unsupported
 
 
     }
