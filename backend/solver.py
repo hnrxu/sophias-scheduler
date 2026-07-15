@@ -165,11 +165,19 @@ def add_prefer_days_objective(model, section_options, variables, days):
     for key, options in section_options.items():
         for idx, section in enumerate(options):
             has_preferred_day = False
+            has_relevant_day = False
             for meeting in section['meetings']:
                 meeting_days = set((meeting['days'] or '').split())
+                ## doesnt have any meeting days, so no conflict/skip
+                if not meeting_days:
+                    continue
+
+                ## has meeting days, must consider
+                has_relevant_day = True
                 if  day_set.intersection(meeting_days):
                     has_preferred_day = True
-            if not has_preferred_day:
+                    break
+            if not has_preferred_day and has_relevant_day:
                 is_chosen = model.new_bool_var(f'{key}_{idx}_included_day')
                 model.add(variables[key] == idx).only_enforce_if(is_chosen)
                 model.add(variables[key] != idx).only_enforce_if(is_chosen.Not())
@@ -218,6 +226,7 @@ def add_prefer_time_objective(model, section_options, variables, period, days=No
     for key, options in section_options.items():
         for idx, section in enumerate(options):
             has_preferred_period = False
+            has_relevant_day = False
             for meeting in section['meetings']:
 
                 if not meeting['startTime'] or not meeting['endTime']:
@@ -227,14 +236,15 @@ def add_prefer_time_objective(model, section_options, variables, period, days=No
                 # preference no effect
                 if days and not meeting_days.intersection(set(days)):
                     continue
-
+                
+                has_relevant_day = True
                 section_start = parse_time(meeting['startTime'])
                 section_end = parse_time(meeting['endTime'])
 
                 if  section_start >= start and section_end <= end:
                     has_preferred_period = True
 
-            if not has_preferred_period:
+            if not has_preferred_period and has_relevant_day:
                 is_chosen = model.new_bool_var(f'{key}_{idx}_excluded_{period}')
                 model.add(variables[key] == idx).only_enforce_if(is_chosen)
                 model.add(variables[key] != idx).only_enforce_if(is_chosen.Not())
