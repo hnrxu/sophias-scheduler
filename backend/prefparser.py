@@ -35,5 +35,5 @@ def classify_preferences(preference_str):
         """,
         input=preference_str
     )
-    print("PARSED PREFS: " + json.loads(response.output_text))
+    print(json.loads(response.output_text))
     return json.loads(response.output_text)
