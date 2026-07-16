@@ -48,3 +48,15 @@ def meetings_overlap(m1, m2):
     end2 = parse_time(m2['endTime'])
     
     return start1 < end2 and start2 < end1
+
+def get_section_term(section):
+    for meeting in section['meetings']:
+        start = meeting.get('startDate')
+        if not start:
+            continue
+        start_month = start[5:7]
+        if '08' == start_month or '09' == start_month:
+            return 1
+        if '01' == start_month:
+            return 2
+    return None

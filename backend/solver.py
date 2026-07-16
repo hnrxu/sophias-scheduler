@@ -1,4 +1,4 @@
-from utils import meetings_overlap, parse_time
+from utils import get_section_term, meetings_overlap, parse_time
 from ortools.sat.python import cp_model
 
 TIME_OF_DAY = {
@@ -39,6 +39,9 @@ def filter_by_term(sections, course_list):
         term = term_map.get((section['subject'].replace('_V', ''), section['course_number']))
         if term == 'either':
             filtered_sections.append(section)
+        elif not section['meetings']:  # no meeting times, dont filter
+            filtered_sections.append(section)
+            continue
         elif term == '1':
             # term 1 sections start in sep
             for m in section['meetings']:
@@ -80,7 +83,7 @@ def add_start_after_objective(model, section_options, variables, time_str, days=
                 # section starts before supposed to
                 # TODO: check whether the start should iclude cutoff or not
                 if section_start < cutoff:
-                    is_chosen = model.new_bool_var(f'{key}_{idx}_excluded_day')
+                    is_chosen = model.new_bool_var(f'{key}_{idx}_start_after')
                     model.add(variables[key] == idx).only_enforce_if(is_chosen)
                     model.add(variables[key] != idx).only_enforce_if(is_chosen.Not())
                     penalties.append(is_chosen)
@@ -106,7 +109,7 @@ def add_end_before_objective(model, section_options, variables, time_str, days=N
                 # section ends after supposed to
                 # TODO: check whether the start should iclude cutoff or not
                 if section_end > cutoff:
-                    is_chosen = model.new_bool_var(f'{key}_{idx}_excluded_day')
+                    is_chosen = model.new_bool_var(f'{key}_{idx}_end_before')
                     model.add(variables[key] == idx).only_enforce_if(is_chosen)
                     model.add(variables[key] != idx).only_enforce_if(is_chosen.Not())
                     penalties.append(is_chosen)
@@ -245,7 +248,7 @@ def add_prefer_time_objective(model, section_options, variables, period, days=No
                     has_preferred_period = True
 
             if not has_preferred_period and has_relevant_day:
-                is_chosen = model.new_bool_var(f'{key}_{idx}_excluded_{period}')
+                is_chosen = model.new_bool_var(f'{key}_{idx}_included_{period}')
                 model.add(variables[key] == idx).only_enforce_if(is_chosen)
                 model.add(variables[key] != idx).only_enforce_if(is_chosen.Not())
                 penalties.append(is_chosen)
@@ -305,7 +308,39 @@ def add_minimize_gaps_objective(model, section_options, variables):
 
     return gap_vars
         
+def enforce_same_term_sections(model, section_options, variables):
+    # this dict stores key courses and value formats (ex cpsc 110: cpsc 100 lec, cpsc 110 lab)
+    course_dict = {}
+    for section_key in section_options:
+        subject, number, frmt = section_key.split('-', 2)
+        course_key = f'{subject}-{number}'
         
+        if course_key not in course_dict:
+            course_dict[course_key] = []
+        course_dict[course_key].append(section_key)
+
+    
+    for course_key, section_keys in course_dict.items():
+        if len(section_keys) > 1:
+            for i in range(len(section_keys)):
+                for j in range(i+1, len(section_keys)):
+
+                    key1, key2 = section_keys[i], section_keys[j]
+                    options1, options2 = section_options[key1], section_options[key2]
+
+                    forbidden = []
+                    for index1, section1 in enumerate(options1):
+                        for index2, section2 in enumerate(options2):
+
+                            section1_term = get_section_term(section1)
+                            section2_term = get_section_term(section2)
+                            if section1_term is not None and section2_term is not None and section1_term != section2_term:
+                                forbidden.append([index1, index2])
+                    
+                    if forbidden:
+                        model.add_forbidden_assignments([variables[key1], variables[key2]], forbidden)
+                    
+
 
             
 # TODO: add smth if smth the student chose is closed
@@ -366,6 +401,8 @@ def solve(sections, course_list, preferences=None):
         # creates a 'decision variable' ex variables[cpsc 110 lecture] = some value from 0-optionssize
         variables[key] = model.new_int_var(0, len(options) - 1, key)
     
+    # add forbidden combinations for sections in same course, but diff term
+    enforce_same_term_sections(model, section_options, variables)
 
     # add forbidden combinations for conflicting times
     keys = list(section_options.keys())

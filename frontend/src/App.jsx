@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './App.css'
+import ScheduleGrid from './ScheduleGrid'
 
 function App() {
     // courses displayed/responding to user query
@@ -100,19 +101,7 @@ function App() {
             />
 
             <button onClick={generateSchedule}>generate schedule</button>
-            {schedule && !schedule.error && (
-                <div>
-                    {Object.entries(schedule).map(([key, section]) => (
-                        <div key={key}>
-                            <strong>{section.subject} {section.course_number} - {section.format}</strong>
-                            <p>{section.section} | {section.status}</p>
-                            {section.meetings?.map((m, i) => (
-                                <p key={i}>{m.days} {m.startTime} - {m.endTime} {m.startDate} </p>
-                            ))}
-                        </div>
-                    ))}
-                </div>
-            )}
+            {schedule && !schedule.error && <ScheduleGrid schedule={schedule} />}
             {schedule?.error && <p>{schedule.error}</p>}
         </div>
 
